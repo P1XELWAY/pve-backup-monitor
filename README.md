@@ -1,6 +1,10 @@
 # pve-backup-monitor
 Proxmox Backup Monitoring script for Zabbix
 
+## Create virtual env
+
+<code>python3 -m venv venv</code>
+
 ## Installation of the script.
 
 Open ssh on target server and type :

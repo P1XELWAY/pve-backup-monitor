@@ -20,8 +20,14 @@ nvenv:
 install:	
 	$(BIN)pip install -r requirements.txt
 
+install3:	
+	$(BIN)pip install -r requirements-python3.txt
+
 run:
 	$(BIN)python main.py
 
 freeze:
 	pip3 freeze > requirements.txt
+
+freeze3:
+	pip3 freeze > requirements-python3.txt

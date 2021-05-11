@@ -6,6 +6,9 @@ import urllib3
 import dateutil.parser as parser
 from dateutil.parser import parse
 from datetime import datetime
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
 
 urllib3.disable_warnings()
 
@@ -17,9 +20,6 @@ class PVEBackup:
     """
     REGEX = r'[0-9][0-9][0-9][0-9]_[0-9][0-9]_[0-9][0-9]'
     MAX_DAYS = 2
-    HOST = 'https://set_proxmox_host_here:8006'
-    USERNAME = 'set username here !!!!'
-    PASSWORD = 'set password here !!!!'
 
     csrf_prevention_token = None
     ticket = None
@@ -31,7 +31,7 @@ class PVEBackup:
         api = '/api2/json/access/ticket'
         resp = requests.post(
             '{}{}?username={}&password={}'.format(
-                self.HOST, api, self.USERNAME, self.PASSWORD
+                config.get('HOST'), api, config.get('USERNAME'), config.get('PASSWORD')
             ),
             verify=False,
         )
@@ -47,7 +47,8 @@ class PVEBackup:
         """
         Return list proxmox backup in selected node
         """
-        api = '/api2/json/nodes/proxmox/storage/{}/content'.format(node)
+        server = 'pve'
+        api = '/api2/json/nodes/{}/storage/{}/content/'.format(server, node)
         cookies = {
             'PVEAuthCookie': self.ticket
         }
@@ -55,10 +56,10 @@ class PVEBackup:
             'CSRFPreventionToken': self.csrf_prevention_token
         }
         resp = requests.get(
-            '{}{}'.format(self.HOST, api),
+            '{}{}'.format(config.get('HOST'), api),
             verify=False,
             cookies=cookies,
-            headers=headers
+            headers=headers,
         )
         content = json.loads(resp.content)
         return content.get('data')
@@ -80,7 +81,7 @@ class PVEBackup:
                 now = datetime.now()
                 delta = now-backup_date
                 days = delta.days
-                success = delta.days <= self.MAX_DAYS
+                success = delta.days <= config.get('MAX_DAYS')
         return {
             "node": node,
             "delta": days,
@@ -89,7 +90,6 @@ class PVEBackup:
             "mb": round(size / 1024000, 2) if size > 0 else size,
             "gb": round(size / 1024000000, 2) if size > 0 else size
         }
-
 
 node = 'local' if len(sys.argv) == 1 else sys.argv[1]
 pveb = PVEBackup()
